@@ -6,7 +6,7 @@ metadata:
   annotations: []
   labels: {
     key: va,
-    key2: val
+    key2: val,
   }
   name: xxx
   namespace: xxx
@@ -19,7 +19,9 @@ spec:
   template:
     metadata:
       name: asd
-      labels: {}
+      labels: {
+        k8s-app: xxxxx
+      }
     spec:
       restartPolicy: always
       containers:
@@ -28,6 +30,8 @@ spec:
           volumeMounts:
             - mountPath: ""
               name: ""
+          args:
+            - xxx
         - name: fluentd-sidecar
           image: xxx
           volumeMounts:
@@ -45,3 +49,6 @@ spec:
     - name: export
       nodePort: 8000
       port: 8800
+  selector: {
+    k8s-app: xxxxx
+  }

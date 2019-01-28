@@ -91,6 +91,7 @@ spec:
     path: ""
     fsType: ""
 ---
+# pod存在策略?
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 spec:
@@ -99,5 +100,38 @@ spec:
   selector:
     matchLabels:
       k8s-app: xxxxx
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: asd
+  labels:
+    asd: 123
+
+spec:
+  selector:
+    matchLabels:
+      app: asd
+
+  template:
+    spec:
+      containers:
+        - name: asd
+---
+
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  selector:
+    matchLabels:
+      asd: 123
+
+  template:
+    spec:
+      containers:
+        - name:
+    metadata:
+
 
 

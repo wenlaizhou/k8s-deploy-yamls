@@ -14,7 +14,7 @@ spec:
   replicas: 1
   selector:
     matchLabels: {
-
+      k8s-app: xxxxx
     }
   template:
     metadata:
@@ -23,20 +23,34 @@ spec:
         k8s-app: xxxxx
       }
     spec:
-      restartPolicy: always
+      restartPolicy: Always # Always, OnFailure, and Never default: Always
       containers:
         - name: xxx
           image: xxx
           volumeMounts:
             - mountPath: ""
               name: ""
-          args:
-            - xxx
+
+          env: [
+            "-e", "MYSQL_ROOT_PASSWORD=" ,""
+          ]
         - name: fluentd-sidecar
           image: xxx
           volumeMounts:
             - mountPath: ""
               name: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysqldConf
+data:
+  xxx: |
+    asd
+    asd
+    asd
+    asd
+    asd
 
 ---
 apiVersion: v1
@@ -52,3 +66,38 @@ spec:
   selector: {
     k8s-app: xxxxx
   }
+  externalName: ""
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysqlLocalVolume
+  labels:
+    volume-name: mysqlLocalVolume
+  annotations: []
+
+spec:
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchFields:
+            - key: app
+              operator: =
+              values:
+                - "mysql"
+
+  local:
+    path: ""
+    fsType: ""
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+spec:
+  maxUnavailable: 10
+  minAvailable: 1
+  selector:
+    matchLabels:
+      k8s-app: xxxxx
+
+

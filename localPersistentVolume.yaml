@@ -22,7 +22,10 @@ spec:
   capacity:
     storage: 100Gi
   # volumeMode field requires BlockVolume Alpha feature gate to be enabled.
-  volumeMode: Filesystem
+  # volumeMode: Filesystem
+  # ReadWriteOnce – the volume can be mounted as read-write by a single node
+  # ReadOnlyMany – the volume can be mounted read-only by many nodes
+  # ReadWriteMany – the volume can be mounted as read-write by many nodes
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete

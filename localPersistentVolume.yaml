@@ -13,6 +13,59 @@
 #  When using local volumes, it is recommended to create a StorageClass with volumeBindingMode set to WaitForFirstConsumer. See the example. Delaying volume binding ensures that the PersistentVolumeClaim binding decision will also be evaluated with any other node constraints the Pod may have, such as node resource requirements, node selectors, Pod affinity, and Pod anti-affinity.
 #
 
+# spec:
+#
+#  accessModes	<[]string>
+#AccessModes contains all ways the volume can be mounted. More info:
+#  https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes
+#
+#  capacity	<map[string]string>
+#A description of the persistent volume's resources and capacity. More info:
+#  https://kubernetes.io/docs/concepts/storage/persistent-volumes#capacity
+#
+#  claimRef	<Object>
+#  ClaimRef is part of a bi-directional binding between PersistentVolume and
+#  PersistentVolumeClaim. Expected to be non-nil when bound. claim.VolumeName
+#is the authoritative bind between PV and PVC. More info:
+#  https://kubernetes.io/docs/concepts/storage/persistent-volumes#binding
+#
+#  hostPath	<Object>
+#  HostPath represents a directory on the host. Provisioned by a developer or
+#  tester. This is useful for single-node development and testing only!
+#  On-host storage is not supported in any way and WILL NOT WORK in a
+#multi-node cluster. More info:
+#  https://kubernetes.io/docs/concepts/storage/volumes#hostpath
+#
+#  local	<Object>
+#  Local represents directly-attached storage with node affinity
+#
+#  mountOptions	<[]string>
+#  A list of mount options, e.g. ["ro", "soft"]. Not validated - mount will
+#simply fail if one is invalid. More info:
+#  https://kubernetes.io/docs/concepts/storage/persistent-volumes/#mount-options
+#
+#  nodeAffinity	<Object>
+#  NodeAffinity defines constraints that limit what nodes this volume can be
+#  accessed from. This field influences the scheduling of pods that use this
+#  volume.
+#
+#  persistentVolumeReclaimPolicy	<string>
+#  What happens to a persistent volume when released from its claim. Valid
+#  options are Retain (default for manually created PersistentVolumes), Delete
+#  (default for dynamically provisioned PersistentVolumes), and Recycle
+#  (deprecated). Recycle must be supported by the volume plugin underlying
+#this PersistentVolume. More info:
+#  https://kubernetes.io/docs/concepts/storage/persistent-volumes#reclaiming
+#
+#  quobyte	<Object>
+#  Quobyte represents a Quobyte mount on the host that shares a pod's lifetime
+#
+#  volumeMode	<string>
+#  volumeMode defines if a volume is intended to be used with a formatted
+#  filesystem or to remain in raw block state. Value of Filesystem is implied
+#  when not included in spec. This is a beta feature.
+#
+
 ---
 apiVersion: v1
 kind: PersistentVolume

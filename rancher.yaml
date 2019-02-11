@@ -1,196 +1,47 @@
----
-
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: cattle-system
+# sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 rancher/rancher:latest
 
 ---
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cattle
-  namespace: cattle-system
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: cattle-admin-binding
-  namespace: cattle-system
-  labels:
-    cattle.io/creator: "norman"
-subjects:
-  - kind: ServiceAccount
-    name: cattle
-    namespace: cattle-system
-roleRef:
-  kind: ClusterRole
-  name: cattle-admin
-  apiGroup: rbac.authorization.k8s.io
-
----
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cattle-credentials-0237d5d
-  namespace: cattle-system
-type: Opaque
-data:
-  url: "aHR0cHM6Ly8xMC4yMy4wLjE0Ojg0NDM="
-  token: "bnpwZ3dsNm1nZmJjdjJ3cGhid2hqbjk1anpzNzY1dmhoN2JiZm1rcW14dDV3bTZ3d2JiNnhz"
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: cattle-admin
-  labels:
-    cattle.io/creator: "norman"
-rules:
-  - apiGroups:
-      - '*'
-    resources:
-      - '*'
-    verbs:
-      - '*'
-  - nonResourceURLs:
-      - '*'
-    verbs:
-      - '*'
-
----
-
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: cattle-cluster-agent
-  namespace: cattle-system
-spec:
-  selector:
-    matchLabels:
-      app: cattle-cluster-agent
-  template:
-    metadata:
-      labels:
-        app: cattle-cluster-agent
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: beta.kubernetes.io/os
-                    operator: NotIn
-                    values:
-                      - windows
-      serviceAccountName: cattle
-      containers:
-        - name: cluster-register
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: CATTLE_SERVER
-              value: "https://10.23.0.14:8443"
-            - name: CATTLE_CA_CHECKSUM
-              value: "a42559d49c47cf4b561fba01c1c881098bf8360a463ea422089b39db490ff7be"
-            - name: CATTLE_CLUSTER
-              value: "true"
-            - name: CATTLE_K8S_MANAGED
-              value: "true"
-          image: rancher/rancher-agent:v2.1.5
-          volumeMounts:
-            - name: cattle-credentials
-              mountPath: /cattle-credentials
-              readOnly: true
-      volumes:
-        - name: cattle-credentials
-          secret:
-            secretName: cattle-credentials-0237d5d
-
----
-
 apiVersion: apps/v1
-kind: DaemonSet
+kind: StatefulSet
 metadata:
-  name: cattle-node-agent
-  namespace: cattle-system
+  name: rancher
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
-      app: cattle-agent
+      rancherPod: true
+  serviceName: rancher-service
+  replicas: 1
   template:
     metadata:
+      name: rancher-pod
+      namespace: kube-system
       labels:
-        app: cattle-agent
+        rancherPod: true
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: beta.kubernetes.io/os
-                    operator: NotIn
-                    values:
-                      - windows
-      hostNetwork: true
-      serviceAccountName: cattle
-      tolerations:
-        - effect: NoExecute
-          key: "node-role.kubernetes.io/etcd"
-          value: "true"
-        - effect: NoSchedule
-          key: "node-role.kubernetes.io/controlplane"
-          value: "true"
+      nodeName: xxx # 调度到特定node之上, 强制扩容可以考虑使用
       containers:
-        - name: agent
-          image: rancher/rancher-agent:v2.1.5
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: CATTLE_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: CATTLE_SERVER
-              value: "https://10.23.0.14:8443"
-            - name: CATTLE_CA_CHECKSUM
-              value: "a42559d49c47cf4b561fba01c1c881098bf8360a463ea422089b39db490ff7be"
-            - name: CATTLE_CLUSTER
-              value: "false"
-            - name: CATTLE_K8S_MANAGED
-              value: "true"
-            - name: CATTLE_AGENT_CONNECT
-              value: "true"
-          volumeMounts:
-            - name: cattle-credentials
-              mountPath: /cattle-credentials
-              readOnly: true
-            - name: k8s-ssl
-              mountPath: /etc/kubernetes
-            - name: var-run
-              mountPath: /var/run
-            - name: run
-              mountPath: /run
-          securityContext:
-            privileged: true
-      volumes:
-        - name: k8s-ssl
-          hostPath:
-            path: /etc/kubernetes
-            type: DirectoryOrCreate
-        - name: var-run
-          hostPath:
-            path: /var/run
-            type: DirectoryOrCreate
-        - name: run
-          hostPath:
-            path: /run
-            type: DirectoryOrCreate
-        - name: cattle-credentials
-          secret:
-            secretName: cattle-credentials-0237d5d
-  updateStrategy:
-    type: RollingUpdate
+        - image: rancher/rancher:lastest
+          name: rancherContainer
+          ports:
+            - containerPort: 80
+              hostPort: 9999
+            - containerPort: 443
+          imagePullPolicy: Always
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rancher-service
+  namespace: kube-system
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      nodePort: 8080
+    - port: 443
+      nodePort: 8083
+      targetPort: 3333
+  selector:
+    rancherPod: true

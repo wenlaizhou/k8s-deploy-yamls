@@ -1,0 +1,61 @@
+kind: StatefulSet
+apiVersion: apps/v1
+spec:
+  replicas: 1
+  serviceName: mysql
+  selector:
+    matchLabels:
+      k: v
+  podManagementPolicy: xxx
+  revisionHistoryLimit: 1
+  template:
+    spec:
+      containers:
+        - name: mysqlSts
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  -
+            preStop:
+              exec:
+                command:
+                  -
+  volumeClaimTemplates:
+    - spec:
+        accessModes:
+          - xx
+          - xx
+        volumeName: xxx
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 512M
+        storageClassName: xxx
+    - metadata:
+        name: xxx
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysqlPV
+spec:
+  local:
+    path: /lib/mysqld/data
+  capacity:
+
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysqlPvc
+spec:
+  volumeName: mysqlPV
+  storageClassName: mysqlPvc
+  resources:
+    limits:
